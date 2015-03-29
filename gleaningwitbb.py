@@ -15,6 +15,7 @@ class GleaningWitbb:
     def initial_bid(self, reserve):
         return self.value / 2
 
+    #def get_clicks(self, t):
 
     def slot_info(self, t, history, reserve):
         """Compute the following for each slot, assuming that everyone else
@@ -48,11 +49,12 @@ class GleaningWitbb:
         the previous round.
 
         returns a list of utilities per slot.
-        """
-        # TODO: Fill this in
-        utilities = []   # Change this
+        """ 
+        slot_infos = self.slot_info(t-1, history, reserve)
+        prev_round = history.round(t-1)
+        clicks = prev_round.clicks
 
-        
+        utilities = [s[1] * (self.value - s[0][1]) for s in zip(slot_infos, clicks)]
         return utilities
 
     def target_slot(self, t, history, reserve):
@@ -80,10 +82,16 @@ class GleaningWitbb:
 
         prev_round = history.round(t-1)
         (slot, min_bid, max_bid) = self.target_slot(t, history, reserve)
-
+        clicks = prev_round.clicks
         # TODO: Fill this in.
-        bid = 0  # change this
-        
+        bid = 0
+        if min_bid >= self.value: # min price is more than value, then give up
+            bid = min_bid
+        else:
+            if slot == 0: # going for the top!
+                bid = self.value
+            else:
+                bid = self.value - 1.0*clicks[slot]/clicks[slot - 1]*(self.value - min_bid)
         return bid
 
     def __repr__(self):
