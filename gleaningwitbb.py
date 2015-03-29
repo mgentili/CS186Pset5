@@ -86,7 +86,7 @@ class GleaningWitbb:
         # TODO: Fill this in.
         bid = 0
         if min_bid >= self.value: # min price is more than value, then give up
-            bid = min_bid
+            bid = self.value
         else:
             if slot == 0: # going for the top!
                 bid = self.value

@@ -51,9 +51,9 @@ class VCG:
             """
             c = slot_clicks
             n = len(allocation)
-
+            
             # TODO: Compute the payment and return it.
-
+            
         def norm(totals):
             """Normalize total payments by the clicks in each slot"""
             return map(lambda (x,y): x/y, zip(totals, slot_clicks))
