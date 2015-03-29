@@ -1,0 +1,58 @@
+\documentclass[12pt]{article}
+
+\usepackage{url}
+\usepackage{fullpage}
+\usepackage{amssymb,amsfonts}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{enumitem}
+\usepackage[normalem]{ulem}
+
+\newcommand{\eps}{\varepsilon}
+\newcommand{\R}{\mathbb{R}}
+\DeclareMathOperator*{\E}{\mathbb{E}}
+\let\Pr\relax
+\DeclareMathOperator*{\Pr}{\mathbb{P}}
+
+\begin{document}
+
+\thispagestyle{empty}
+
+\begin{center}
+{\Large \textsc{CS 186 Problem Set 5}}
+
+\bigskip
+
+Marco Gentili, Alex Wang -- GleaningWit
+\end{center}
+
+\section{Designing a Bidding Agent}
+Done.
+
+\section{Experimental Analysis}
+
+\begin{enumerate}[label=(\alph*)]
+\item In a population of truthful agents, the average utility per truthful agent is ~\$330. \\
+%./auction.py --perms 1 --iters 500 --seed 4 Truthful,5
+
+In a population of only balanced bidders, the average utility per balanced bidder is ~\$530. \\
+%./auction.py --perms 1 --iters 500 --seed 4 GleaningWitbb,5
+
+[Explanation of findings]
+
+\item In a population of 4 truthful agents and 1 balanced bidder, the average utiliy per truthful agent is ~\$375. The average utility for the balanced bidder is \$510. \\
+%./auction.py --perms 1 --iters 500 --seed 4 Truthful,4 GleaningWitbb,1
+
+In a population of 1 truthful agents and 4 balanced bidder, the average utiliy per truthful agent is ~\$500. The average utility for the balanced bidder is \$575. \\
+%./auction.py --perms 1 --iters 500 --seed 4 Truthful,1 GleaningWitbb,4
+
+% To be honest, I don't really understand our results. It may be that I'm not testing correctly (I'm not using permuatations because I have a question about how they work). What do you think?
+This suggests that balanced bidding dominates truthful bidding as a strategy, and thus a strategy profile of everyone bidding truthfully is not stable as everyone has an incentive to deviate to balanced bidding.
+
+\end{enumerate}
+
+\section{Auction Design and Reserve Prices}
+
+\section{Budget Constraints}
+
+\end{document}

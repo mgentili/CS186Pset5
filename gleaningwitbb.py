@@ -50,7 +50,7 @@ class GleaningWitbb:
 
         returns a list of utilities per slot.
         """ 
-        slot_infos = self.slot_info(t-1, history, reserve)
+        slot_infos = self.slot_info(t, history, reserve)
         prev_round = history.round(t-1)
         clicks = prev_round.clicks
 
