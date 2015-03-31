@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import sys
+import math
 
 from gsp import GSP
 from util import argmax_index
@@ -15,7 +16,7 @@ class GleaningWitBudget:
         print "My value is {} and id {}".format(value, id)
 
     def initial_bid(self, reserve):
-        return self.value / 2
+        return self.value
 
     def slot_info(self, t, history, reserve):
         """Compute the following for each slot, assuming that everyone else
@@ -52,9 +53,34 @@ class GleaningWitBudget:
         """ 
         slot_infos = self.slot_info(t, history, reserve)
         pr = history.round(t-1)
-        clicks = pr.clicks
+        clicks = [0] * len(pr.clicks)
+        clicks[0] = iround(30*math.cos(math.pi*t/24)+50)
+        for i in range(1,len(pr.clicks)):
+            clicks[i] = clicks[i - 1] * .75
+        #clicks = pr.clicks
 
         utilities = [s[1] * (self.value - s[0][1]) for s in zip(slot_infos, clicks)]
+        return utilities
+
+    def expected_utils_others(self, t, history, reserve, values):
+        """
+        Figure out the expected utility of bidding such that we win each
+        slot, assuming that everyone else keeps their bids constant from
+        the previous round.
+
+        returns a list of utilities per slot.
+        """ 
+        slot_infos = self.slot_info(t, history, reserve)
+        pr = history.round(t-1)
+        clicks = [0] * len(pr.clicks)
+        clicks[0] = iround(30*math.cos(math.pi*t/24)+50)
+        for i in range(1,len(pr.clicks)):
+            clicks[i] = clicks[i - 1] * .75
+        #clicks = pr.clicks
+
+        utilities = []
+        for i in range(len(values)):
+            utilities.append([s[1] * (values[i] - s[0][1]) for s in zip(slot_infos, clicks)])
         return utilities
 
     def target_slot(self, t, history, reserve):
@@ -124,6 +150,8 @@ class GleaningWitBudget:
         print "values", values
         print "value/dollar", [v/sp[i] for i,v in enumerate(values)]
         
+        others_util = self.expected_util_others(t, history, reserve, values)
+
         # if only two guys left, then we don't need to spend anything to get
         # pretty good results
         if len(pr.slot_payments) <= 2:
