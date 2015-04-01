@@ -8,6 +8,49 @@
 \usepackage{enumitem}
 \usepackage[normalem]{ulem}
 
+\usepackage[utf8]{inputenc}
+
+% Default fixed font does not support bold face
+\DeclareFixedFont{\ttb}{T1}{txtt}{bx}{n}{12} % for bold
+\DeclareFixedFont{\ttm}{T1}{txtt}{m}{n}{12}  % for normal
+
+% Custom colors
+\usepackage{color}
+\definecolor{deepblue}{rgb}{0,0,0.5}
+\definecolor{deepred}{rgb}{0.6,0,0}
+\definecolor{deepgreen}{rgb}{0,0.5,0}
+
+\usepackage{listings}
+
+% Python style for highlighting
+\newcommand\pythonstyle{\lstset{
+language=Python,
+basicstyle=\ttm,
+otherkeywords={self},             % Add keywords here
+keywordstyle=\ttb\color{deepblue},
+emph={MyClass,__init__},          % Custom highlighting
+emphstyle=\ttb\color{deepred},    % Custom highlighting style
+stringstyle=\color{deepgreen},
+frame=tb,                         % Any extra options here
+showstringspaces=false            % 
+}}
+
+
+% Python environment
+\lstnewenvironment{python}[1][]
+{
+\pythonstyle
+\lstset{#1}
+}
+{}
+
+% Python for external files
+\newcommand\pythonexternal[2][]{{
+\pythonstyle
+\lstinputlisting[#1]{#2}}}
+
+% Python for inline
+\newcommand\pythoninline[1]{{\pythonstyle\lstinline!#1!}}
 \newcommand{\eps}{\varepsilon}
 \newcommand{\R}{\mathbb{R}}
 \DeclareMathOperator*{\E}{\mathbb{E}}
@@ -27,32 +70,100 @@ Marco Gentili, Alex Wang -- GleaningWit
 \end{center}
 
 \section{Designing a Bidding Agent}
-Done.
 
+\begin{python}
+def expected_utils(self, t, history, reserve):                                                   
+ 53         slot_infos = self.slot_info(t, history, reserve)                        
+ 54         prev_round = history.round(t-1)                                         
+ 55         clicks = prev_round.clicks                                              
+ 56         utilities = [s[1] * (self.value - s[0][1]) for s 
+            in zip(slot_infos, clicks)]
+ 57         return utilities   
+\end{python}
+
+
+\begin{python}
+def bid(self, t, history, reserve):                 
+ 82         prev_round = history.round(t-1)                                         
+ 83         (slot, min_bid, max_bid) = self.target_slot(t, history, reserve)        
+ 84         clicks = prev_round.clicks                                      
+ 86         bid = 0                                                                 
+ 87         if min_bid >= self.value: # min price is more than value, then give up  
+ 88             bid = self.value                                                    
+ 89         else:                                                                   
+ 90             if slot == 0: # going for the top!                                  
+ 91                 bid = self.value                                                
+ 92             else:                                                               
+ 93                 bid = self.value - 1.0*clicks[slot]/clicks[slot - 1]
+                    *(self.value - min_bid)
+ 94         return bid       
+\end{python}
 \section{Experimental Analysis}
 
 \begin{enumerate}[label=(\alph*)]
-\item In a population of truthful agents, the average utility per truthful agent is ~\$330. \\
+\item In a population of truthful agents, the average utility per truthful agent ranges from $\sim$\$310 to $\sim$\$350. \\
 %./auction.py --perms 1 --iters 500 --seed 4 Truthful,5
 
-In a population of only balanced bidders, the average utility per balanced bidder is ~\$675. \\
-%./auction.py --perms 1 --iters 1000 --seed 25 GleaningWitbb,5
+In a population of only balanced bidders, the average utility per balanced bidder ranges from $\sim$\$600 to $\sim$\$700. \\
+%./auction.py --perms 1 --iters 500 --seed 4 GleaningWitbb,5
 
-[Explanation of findings]
+It is clear that the overall utility of all the bidders is higher if everyone uses balanced bidding. This makes sense as in each round, a balanced bidder targets the slot that maximizes their expected utility. The truthful bidder simply bids truthfully, but there is no reason to suggest that that is utility-optimizing.
 
-\item In a population of 4 truthful agents and 1 balanced bidder, the average utiliy per truthful agent is ~\$375. The average utility for the balanced bidder is \$511. \\
+\item In a population of 4 truthful agents and 1 balanced bidder, the average utility per truthful agent ranges from $\sim$\$370 to $\sim$\$400. The average utility for the balanced bidder ranges from $\sim$\$550 to $\sim$\$570. \\
 %./auction.py --perms 1 --iters 500 --seed 4 Truthful,4 GleaningWitbb,1
 
-In a population of 1 truthful agents and 4 balanced bidder, the average utiliy per truthful agent is ~\$500. The average utility for the balanced bidder is \$550. \\
+In a population of 1 truthful agents and 4 balanced bidder, the average utility for all agents, both truthful and balanced bidding, ranges from $\sim$\$600 to $\sim$\$750. \\
 %./auction.py --perms 1 --iters 500 --seed 4 Truthful,1 GleaningWitbb,4
 
-% To be honest, I don't really understand our results. It may be that I'm not testing correctly (I'm not using permuatations because I have a question about how they work). What do you think?
-This suggests that balanced bidding dominates truthful bidding as a strategy, and thus a strategy profile of everyone bidding truthfully is not stable as everyone has an incentive to deviate to balanced bidding.
+These results suggest that balanced bidding weakly dominates balanced bidding. This means that everyone bidding truthfully is not an equilibrium because there is an incentive to deviate to balanced bidding. A strategy profile of everyone playing balanced bidding could be an equilibrium, assuming there is no strategy that does better against it.
 
 \end{enumerate}
 
 \section{Auction Design and Reserve Prices}
+\begin{enumerate}[label=(\alph*)]
+\item 
+
+\begin{python}
+def total_payment(k):                                                                                             
+ 52             c = slot_clicks                                                     
+ 53             n = len(allocation)                                              
+ 55             if k >= n: # not allocated                                          
+ 56                 return 0                                                        
+ 57             if k == (n-1): # last one allocated                                 
+ 58                 # more valid bids than slots, so bidder w/bid > r, but no alloc 
+ 59                 if len(valid_bids) > n:                                         
+ 60                    return c[k] * valid_bids[k+1][1]                             
+ 61                 else:                                                           
+ 62                     return c[k] * reserve                                       
+ 63             else:                                                               
+ 64                 return (c[k] - c[k+1]) * just_bids[k+1] 
+                    + total_payment(k+1)   
+\end{python}
+
+\item The auctioneer's average daily revenue under GSP without a reserve price and when all 5 agents use the balanced bidding strategy is \$4478. With a reserve price of \$0.25, the average revenue is \$4714, with a reserve price of \$0.50, \$4810, with a reserve price of \$0.75, \$5080, with a reserve price of \$1, \$4981, with a reserve price of \$1.25, \$4500. 
+As we can see, as the reserve price increases, the revenue increases, but only up to a certain point, after which the revenue decreases with increasing reserve price. The optimal reserve price is between \$0.75 and \$1.00. 
+
+\item The auctioneer's average daily revenue under VCG with no reserve price and when all agents are truthful is \$4400. With a reserve price of \$0.25, the average revenue is \$4470, with a reserve price of \$0.50, \$4612, with a reserve price of \$0.75, \$4889, with a reserve price of \$1, \$5200, and with a reserve price of \$1.25, \$4723.
+
+Once again, as the reserve price increases, the revenue increases, but only up to a certain point, after which the revenue decreases with increasing reserve price. The optimal reserve price is also a little below \$1.00 for the VCG auction, which is rougly the same as in the GSP auction. The revenue without a reserve price is approximately the same for both types of auctions, and the revenue with the optimal reserve prices are actually quite similar too (approximately \$5200 for each).
+
+\item With balanced bidding agents that get switched from a GSP to VCG auction at period 24, the revenue decreases quite a bit, from approximately \$4500 before to \$4142 afterwards. This seems to show that if a search engine were to switch over from GSP to VCG, in the interim when agents learn to switch from balanced bidding to truthful bidding, the search engine will lose money. 
+
+\item As we would expect, agents act differently based on the nature of the auction. With a GSP auction, agents have to be bid more cleverly since they do not benefit from bidding their true value. However, the auction itself is perhaps simpler to run, as we can easily compute the payments for each bidder by just sorting the bids and looking at the next highest one. For a VCG auction instead, agents can just bid their true value, which is easier on their part. However, the VCG auction is a bit more difficult to design, as the auctioneer needs to choose bidder payments according to the VCG payment rule. Thus, in the case of GSP vs VCG, there seems to be a tradeoff between auctioneer simplicity and bidder simplicity.
+
+Based on our results, it seems like revenue from both auctions are roughly the same. However, there is probably friction in changing from one mechanism to another, as the auctioneer's revenue will decrease while bidders still haven't switched over to account for the new mechanism. Furthermore, bidders will have to change their bidding strategy appropriately, which is a hassle on their part. 
+\end{enumerate}
 
 \section{Budget Constraints}
+
+As we imagine many of the other groups are doing, we are basing our bidding strategy on balanced bidding with some variations based on some heuristics that we observe.\\
+
+First, rather than targeting the slot that maximizes expected utility, with the added constraint of the budget, we instead target the slot with the maximal clicks per dollar. \\
+
+Second, we realized that with so much focus on the bidding strategy, it is easy to forget to change the initial bid. We can take advantage of this by storing twice each user's original bid as their value, and use those values to predict what others are bidding, assuming that like us, other bidders are basing their strategy off of balanced bidding. Using this information, we can target the optimal slot with reasonable certainty that we actually get that slot, assuming everyone else is doing a variant of balanced bidding. \\
+
+Third, because we know the function that determines the number of clicks in each period, we not only can use the actual click values rather than the previous round's clicks to make predictions, we also know which periods have high click rates and which periods have low click rates. Thus, we bid normally when it is the beginning or the end, corresponding to periods of high clicks, and bid minimally during the middle periods, corresponding to the periods of low clicks. One concern is that this observation is apparent to many, who may adjust their strategy similarly, which would congest bidding towards the ends.\\
+
+Fourth, we note that with a sufficiently high valuation, the balanced bidder almost always goes over budget quite early in the day. To mitigate this problem, before placing a bid, we make sure that that bid will not put us over our budget. If it would, then we reduce our bid to just enough to stay in the game (reserve + $\epsilon$).\\
 
 \end{document}
