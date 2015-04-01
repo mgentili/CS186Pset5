@@ -54,7 +54,7 @@ class GleaningWitBudget:
         slot_infos = self.slot_info(t, history, reserve)
         pr = history.round(t-1)
         clicks = [0] * len(pr.clicks)
-        clicks[0] = iround(30*math.cos(math.pi*t/24)+50)
+        clicks[0] = int(round(30*math.cos(math.pi*t/24)+50))
         for i in range(1,len(pr.clicks)):
             clicks[i] = clicks[i - 1] * .75
         #clicks = pr.clicks
@@ -73,7 +73,7 @@ class GleaningWitBudget:
         slot_infos = self.slot_info(t, history, reserve)
         pr = history.round(t-1)
         clicks = [0] * len(pr.clicks)
-        clicks[0] = iround(30*math.cos(math.pi*t/24)+50)
+        clicks[0] = int(round(30*math.cos(math.pi*t/24)+50))
         for i in range(1,len(pr.clicks)):
             clicks[i] = clicks[i - 1] * .75
         #clicks = pr.clicks
@@ -151,9 +151,9 @@ class GleaningWitBudget:
         print "value/dollar", [v/sp[i] for i,v in enumerate(values)]
         
         # tells us what others are planning on targeting, assuming balanced bidding
-        other_targets = []
+        others_targets = []
         info = self.slot_info(t, history, reserve)
-        others_util = self.expected_util_others(t, history, reserve, values)
+        others_util = self.expected_utils_others(t, history, reserve, values)
         for i in range(len(others_util)):
             j = argmax_index(others_util[i])
             others_targets.append(info[j])
