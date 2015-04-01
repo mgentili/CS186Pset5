@@ -152,11 +152,20 @@ class GleaningWitBudget:
         
         # tells us what others are planning on targeting, assuming balanced bidding
         others_targets = []
+        others_bids = []
         info = self.slot_info(t, history, reserve)
         others_util = self.expected_utils_others(t, history, reserve, values)
         for i in range(len(others_util)):
             j = argmax_index(others_util[i])
             others_targets.append(info[j])
+            (slot, min_bid, max_bid) = info[j]
+            if min_bid >= self.av[i]:
+                others_bids.append(self.av[i])
+            else:
+                if slot == 0:
+                    others_bids.append(self.av[i])
+                else:
+                    others_bids.append(self.value - 1.0*clicks[slot]/clicks[slot - 1]*(self.av[i] - min_bid)) 
 
         # if only two guys left, then we don't need to spend anything to get
         # pretty good results
