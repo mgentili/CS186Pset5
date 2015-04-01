@@ -150,7 +150,13 @@ class GleaningWitBudget:
         print "values", values
         print "value/dollar", [v/sp[i] for i,v in enumerate(values)]
         
+        # tells us what others are planning on targeting, assuming balanced bidding
+        other_targets = []
+        info = self.slot_info(t, history, reserve)
         others_util = self.expected_util_others(t, history, reserve, values)
+        for i in range(len(others_util)):
+            j = argmax_index(others_util[i])
+            others_targets.append(info[j])
 
         # if only two guys left, then we don't need to spend anything to get
         # pretty good results
