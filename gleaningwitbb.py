@@ -53,7 +53,6 @@ class GleaningWitbb:
         slot_infos = self.slot_info(t, history, reserve)
         prev_round = history.round(t-1)
         clicks = prev_round.clicks
-
         utilities = [s[1] * (self.value - s[0][1]) for s in zip(slot_infos, clicks)]
         return utilities
 
@@ -86,7 +85,7 @@ class GleaningWitbb:
         # TODO: Fill this in.
         bid = 0
         if min_bid >= self.value: # min price is more than value, then give up
-            bid = min_bid
+            bid = self.value
         else:
             if slot == 0: # going for the top!
                 bid = self.value
