@@ -140,15 +140,15 @@ class GleaningWitBudget:
         pos = pr.occupants
         pcp = pr.per_click_payments
         sp = pr.slot_payments
-        print "Total spend", tot_spend
-        print "prev bids", bids
-        print "prev clicks", clicks
-        print "occupants", pos
-        print "per click payments", pcp
-        print "slot payments", sp
+        #print "Total spend", tot_spend
+        #print "prev bids", bids
+        #print "prev clicks", clicks
+        #print "occupants", pos
+        #print "per click payments", pcp
+        #print "slot payments", sp
         values = [clicks[i] * (self.av[p] - pcp[i]) for i,p in enumerate(pos)]
-        print "values", values
-        print "value/dollar", [v/sp[i] for i,v in enumerate(values)]
+        #print "values", values
+        #print "value/dollar", [v/sp[i] for i,v in enumerate(values)]
         
         # tells us what others are planning on targeting, assuming balanced bidding
         others_targets = []
@@ -175,12 +175,19 @@ class GleaningWitBudget:
 
         # cruise when lower clicks
         if t > 12 and t < 36:
-            return reserve + 1
+        #    print "We're cruising, spent", self.spending, "new bid",
+        #    sorted(pr.bids)[1][1] + 1
+        #    return sorted(pr.bids)[1][1] + 1
+            second_highest = sorted(pr.bids)[1]
+            if second_highest[1] < self.value and second_highest[1] < 4*reserve:
+                return second_highest[1] + 1
+            else:
+                return reserve + 1
         
         #(slot, min_bid, max_bid) = self.target_slot(t, history, reserve)
         (slot, min_bid, max_bid) = self.target_value_slot(t, history, reserve)
         clicks = pr.clicks
-        # TODO: Fill this in.
+        
         bid = 0
         if min_bid >= self.value: # min price is more than value, then give up
             bid = self.value
