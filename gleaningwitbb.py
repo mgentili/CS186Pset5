@@ -84,13 +84,14 @@ class GleaningWitbb:
         clicks = prev_round.clicks
         # TODO: Fill this in.
         bid = 0
+        min_bid += 1
         if min_bid >= self.value: # min price is more than value, then give up
             bid = self.value
         else:
             if slot == 0: # going for the top!
                 bid = self.value
             else:
-                bid = self.value - 1.0*clicks[slot]/clicks[slot - 1]*(self.value - min_bid)
+                bid = 1 + self.value - 1.0*clicks[slot]/clicks[slot - 1]*(self.value - min_bid)
         return bid
 
     def __repr__(self):

@@ -51,6 +51,7 @@ class VCG:
             """
             c = slot_clicks
             n = len(allocation)
+
             # TODO: Compute the payment and return it.
             if k >= n: # not allocated
                 return 0
