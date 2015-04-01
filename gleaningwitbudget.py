@@ -105,10 +105,25 @@ class GleaningWitBudget:
                 xrange(len(sp))]
         print 'My values per slot dollar', values
         return values
-    
+        
+    def predict_value_per_slot_dollar(self, t, history, reserve):
+        pr = history
+        clicks = pr.clicks
+        pcp = pr.per_click_payments
+        sp = pr.slot_payments
+        values = [1.0*clicks[i] * (self.value - pcp[i])/sp[i] for i in
+                xrange(len(sp))]
+        print 'My values per slot dollar', values
+        return values
+   
     # determine best slot based on the one with highest value/dollar
     def target_value_slot(self, t, history, reserve):
         i = argmax_index(self.value_per_slot_dollar(t, history, reserve))
+        info = self.slot_info(t, history, reserve)
+        return info[i]
+
+    def predict_value_slot(self, t, history, artificial, reserve):
+        i = argmax_index(self.predict_value_per_slot_dollar(t, artificial, reserve))
         info = self.slot_info(t, history, reserve)
         return info[i]
 
@@ -124,6 +139,7 @@ class GleaningWitBudget:
         # If s*_j is the top slot, bid the value v_j
         pr = history.round(t-1)
         print "Round number", t
+        print history.round(t-1).bids
         if t == 1:
             self.av = [2*x[1] for x in pr.bids]
       
@@ -154,22 +170,29 @@ class GleaningWitBudget:
         others_targets = []
         others_bids = []
         info = self.slot_info(t, history, reserve)
-        others_util = self.expected_utils_others(t, history, reserve, values)
+        others_util = self.expected_utils_others(t, history, reserve, self.av)
+        #print "Others util: ", others_util
         for i in range(len(others_util)):
             j = argmax_index(others_util[i])
+        #    print "The info: ", info[j]
             others_targets.append(info[j])
             (slot, min_bid, max_bid) = info[j]
             if min_bid >= self.av[i]:
-                others_bids.append(self.av[i])
+                others_bids.append((i, self.av[i]))
             else:
                 if slot == 0:
-                    others_bids.append(self.av[i])
+                    others_bids.append((i,self.av[i]))
                 else:
-                    others_bids.append(self.value - 1.0*clicks[slot]/clicks[slot - 1]*(self.av[i] - min_bid)) 
-
+                    others_bids.append((i,self.value - 1.0*clicks[slot]/clicks[slot - 1]*(self.av[i] - min_bid)))
+        #print "Others targets: ", others_targets
+        #print "Others bids: " , others_bids
+        predictions = pr
+        predictions.bids = others_bids 
+        
         # if only two guys left, then we don't need to spend anything to get
         # pretty good results
         if len(pr.slot_payments) <= 2:
+            print "not many dudes"
         #if len(pr.slot_payments) != len(pr.clicks):
             return reserve + 1
 
@@ -186,6 +209,8 @@ class GleaningWitBudget:
         
         #(slot, min_bid, max_bid) = self.target_slot(t, history, reserve)
         (slot, min_bid, max_bid) = self.target_value_slot(t, history, reserve)
+        #print "targeting: ", slot
+        #(slot, min_bid, max_bid) = self.predict_value_slot(t, history, predictions, reserve) 
         clicks = pr.clicks
         
         bid = 0
